@@ -1,0 +1,46 @@
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#123c38" />
+    <title>@ViewData["Title"] - Vehicle Management</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+        <div class="nav-shell">
+            <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">V<span>.</span></span><span>Vehicle<span class="brand-sub">MANAGEMENT</span></span></a>
+            <nav aria-label="Main navigation">
+                <a href="/" class="@(controller == "Home" ? "active" : "")" aria-current="@(controller == "Home" ? "page" : null)">Overview</a>
+                <a href="/VehiclesManage" class="@(controller == "VehiclesManage" ? "active" : "")" aria-current="@(controller == "VehiclesManage" ? "page" : null)">Vehicles</a>
+                <a href="/CategoriesManage" class="@(controller == "CategoriesManage" ? "active" : "")" aria-current="@(controller == "CategoriesManage" ? "page" : null)">Categories</a>
+            </nav>
+        </div>
+    </header>
+    <main id="main" class="container" tabindex="-1">@RenderBody()</main>
+    <footer class="site-footer"><span>Vehicle Management</span><span>A clearer view of every vehicle.</span></footer>
+    <dialog id="delete-dialog" aria-labelledby="delete-title" aria-describedby="delete-description">
+        <div class="dialog-content">
+            <span class="danger-symbol" aria-hidden="true">!</span>
+            <h2 id="delete-title">Delete this record?</h2>
+            <p id="delete-description">This action cannot be undone.</p>
+            <div id="delete-error" class="alert alert-danger" role="alert" hidden></div>
+            <form id="delete-form" method="post">
+                <input type="hidden" name="Id" />
+                <input type="hidden" name="__RequestVerificationToken" />
+                <div class="dialog-actions"><button type="button" class="btn btn-secondary" id="delete-cancel">Cancel</button><button type="submit" class="btn btn-danger" id="delete-confirm">Delete</button></div>
+            </form>
+        </div>
+    </dialog>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true" defer></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

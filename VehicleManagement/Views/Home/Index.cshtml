@@ -1,0 +1,8 @@
+@{
+    ViewData["Title"] = "Overview";
+}
+<section class="hero"><p class="eyebrow">Your vehicle workspace</p><h1>Every vehicle.<br />Everything in view.</h1><p>Keep vehicle details organised and weight categories up to date, all in one place.</p><a class="btn" asp-controller="VehiclesManage" asp-action="Index">Explore vehicles ↗</a></section>
+<div class="feature-grid">
+<section class="feature-card"><p class="eyebrow">01 / Vehicle directory</p><h2>Keep the details together.</h2><p>Manage owners, manufacturers and vehicle details. Categories follow each vehicle's weight automatically.</p><a asp-controller="VehiclesManage" asp-action="Create">Add a vehicle →</a></section>
+<section class="feature-card"><p class="eyebrow">02 / Weight categories</p><h2>A category for every vehicle.</h2><p>Set weight boundaries and choose recognisable icons. Category changes are reflected across your vehicle list.</p><a asp-controller="CategoriesManage" asp-action="Index">Manage categories →</a></section>
+</div>

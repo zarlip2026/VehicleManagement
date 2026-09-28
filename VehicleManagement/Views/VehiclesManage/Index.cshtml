@@ -1,0 +1,87 @@
+@model IEnumerable<(VehicleManagement.Models.Vehicle vehicle, VehicleManagement.Models.Category? category)>
+@{
+    ViewData["Title"] = "Vehicles";
+    var vehicles = Model.ToList();
+    var sort = Context.Request.Query["sortBy"].ToString().ToLowerInvariant();
+    var descending = string.Equals(Context.Request.Query["desc"].ToString(), "true", StringComparison.OrdinalIgnoreCase);
+}
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">Vehicle directory</p>
+        
+        <h1>Vehicles</h1>
+        
+        <p>Your vehicles, organised and always in the right category.</p>
+    
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ Add vehicle</a>
+</div>
+<section class="panel" aria-label="Vehicle directory">
+    <div class="panel-top">
+        <strong>All vehicles <span class="count">@vehicles.Count</span></strong>
+
+        <form class="sort-form" method="get" asp-action="Index">
+            <label for="sortBy">Sort by</label>
+            <select id="sortBy" name="sortBy">
+                <option value="" selected="@(sort == "")">Date added</option>
+                <option value="ownername" selected="@(sort == "ownername")">Owner</option>
+                <option value="manufacturer" selected="@(sort == "manufacturer")">Manufacturer</option>
+                <option value="yearofmanufacture" selected="@(sort == "yearofmanufacture")">Year</option>
+                <option value="weight" selected="@(sort == "weight")">Weight</option>
+            </select>
+
+        <label for="desc">Order</label>
+
+        <select id="desc" name="desc">
+            <option value="false" selected="@(!descending)">Ascending</option>
+            <option value="true" selected="@descending">Descending</option>
+        </select>
+
+        <button class="btn btn-secondary" type="submit">Apply</button></form>
+    </div>
+    @if (vehicles.Count == 0) {
+        <div class="empty-state">
+            <h3>Your vehicle directory starts here</h3>
+    
+            <p>Add a vehicle and we will match it to its weight category.</p>
+    
+            <a class="btn btn-primary" asp-action="Create">Add vehicle</a>
+        </div>
+    } else {
+        <div class="table-wrap" role="region" aria-label="Vehicles" tabindex="0">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Owner</th>
+                        <th scope="col">Manufacturer</th>
+                        <th scope="col">Year</th>
+                        <th scope="col">Category</th>
+                        <th scope="col" class="actions-heading">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(var item in vehicles) {
+                        <tr>
+                            <td>@item.vehicle.OwnerName</td>
+                            <td>@item.vehicle.Manufacturer</td>
+                            <td>@item.vehicle.YearOfManufacture</td>
+                            <td><span class="category-badge">
+                                    @if (item.category?.Icon is { Length: > 0 }) { 
+                                        <img src="@IconImage.DataUrl(item.category.Icon)" alt="" />
+                                    }
+                                    @(item.category?.Name ?? "Unassigned")
+                                </span></td>
+                            <td>
+                                <div class="row-actions">
+                                    <a asp-action="Edit" asp-route-id="@item.vehicle.Id">Edit</a>
+                                    <a class="delete-link" asp-action="Delete" asp-route-id="@item.vehicle.Id" data-delete="vehicle" data-name="@(item.vehicle.OwnerName + " / " + item.vehicle.Manufacturer)">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+

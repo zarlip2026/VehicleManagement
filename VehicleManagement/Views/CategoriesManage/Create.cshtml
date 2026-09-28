@@ -1,0 +1,39 @@
+@model VehicleManagement.Models.Category
+@{
+    ViewData["Title"] = "Create Category";
+}
+
+<a class="back-link" asp-action="Index">← Back to directory</a><p class="eyebrow">Record details</p><h2>Create Category</h2>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+    <div class="form-group">
+        <label asp-for="Name"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="MinWeightKg">Minimum weight (kg)</label>
+        <input asp-for="MinWeightKg" type="number" min="@Constants.MinimumWeightKg.ToString(System.Globalization.CultureInfo.InvariantCulture)" max="@Constants.MaximumWeightKg.ToString(System.Globalization.CultureInfo.InvariantCulture)" step="@Constants.WeightInputStepKg.ToString(System.Globalization.CultureInfo.InvariantCulture)" class="form-control" />
+        <span asp-validation-for="MinWeightKg" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label for="icon">Icon (required)</label>
+        <input type="file" id="icon" name="icon" class="form-control" accept=".png,.jpg,.jpeg,.webp,.gif,.bmp,.avif" data-icon-max-bytes="1000000" aria-describedby="icon-help icon-error" required data-val="true" data-val-required="A category icon is required." />
+        <small id="icon-help">Supported extensions: .png, .jpg, .jpeg, .webp, .gif, .bmp, .avif.<br />Maximum file size: 1 MB (1,000,000 bytes).</small>
+        <span id="icon-error" class="text-danger" aria-live="polite"></span>
+        <span class="text-danger" data-valmsg-for="icon" data-valmsg-replace="true"></span>
+    </div>
+    <div class="form-actions"><button type="submit" class="btn btn-primary">Create</button><a class="btn btn-secondary" asp-action="Index">Cancel</a></div>
+</form>
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/icon-upload.js" asp-append-version="true"></script>
+}
+
+
+
+
+
+

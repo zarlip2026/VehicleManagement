@@ -1,0 +1,23 @@
+**/bin/
+**/obj/
+TestResults/
+.local/
+.vs/
+.idea/
+*.user
+*.suo
+*.bak
+*.mdf
+*.ldf
+*.ndf
+*.log
+*.trx
+**/node_modules/
+tmp/
+# Local assistant instructions and machine-specific configuration
+AGENTS.md
+**/appsettings.Local.json
+**/appsettings.*.local.json
+.env
+.env.*
+!.env.example

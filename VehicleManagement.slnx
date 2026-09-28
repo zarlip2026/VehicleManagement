@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="IntegrationTest/VehicleManagement.IntegrationTests.csproj" />
+  <Project Path="VehicleManagement/VehicleManagement.csproj" />
+  <Project Path="UnitTest/VehicleManagement.UnitTests.csproj" />
+</Solution>

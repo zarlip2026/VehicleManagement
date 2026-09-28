@@ -1,0 +1,48 @@
+@model VehicleManagement.Models.Vehicle
+@{
+    ViewData["Title"] = "Edit Vehicle";
+}
+
+<a class="back-link" asp-action="Index">← Back to directory</a><p class="eyebrow">Record details</p><h2>Edit Vehicle</h2>
+
+<form asp-action="Edit" method="post">
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+    <input type="hidden" asp-for="Id" />
+    <div class="form-group">
+        <label asp-for="OwnerName">Owner name</label>
+        <input asp-for="OwnerName" class="form-control" />
+        <span asp-validation-for="OwnerName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Manufacturer"></label>
+        <select asp-for="Manufacturer" class="form-control" asp-items="@(new Microsoft.AspNetCore.Mvc.Rendering.SelectList(ViewBag.Manufacturers, "Name", "Name"))">
+            <option value="">-- select --</option>
+        </select>
+        <span asp-validation-for="Manufacturer" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="YearOfManufacture">Year of manufacture</label>
+        <input asp-for="YearOfManufacture" type="number" step="1"
+               min="@Vehicle.MinimumManufactureYear" max="@Vehicle.MaximumManufactureYear"
+               data-val="true" data-val-range="@Vehicle.ManufactureYearError"
+               data-val-range-min="@Vehicle.MinimumManufactureYear" data-val-range-max="@Vehicle.MaximumManufactureYear"
+               class="form-control" />
+        <small>Enter a year from @Vehicle.MinimumManufactureYear to @Vehicle.MaximumManufactureYear.</small>
+        <span asp-validation-for="YearOfManufacture" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="WeightKg">Weight (kg)</label>
+        <input asp-for="WeightKg" type="number" min="@Constants.MinimumWeightKg.ToString(System.Globalization.CultureInfo.InvariantCulture)" max="@Constants.MaximumWeightKg.ToString(System.Globalization.CultureInfo.InvariantCulture)" step="@Constants.WeightInputStepKg.ToString(System.Globalization.CultureInfo.InvariantCulture)" class="form-control" />
+        <span asp-validation-for="WeightKg" class="text-danger"></span>
+    </div>
+    <div class="form-actions"><button type="submit" class="btn btn-primary">Save</button><a class="btn btn-secondary" asp-action="Index">Cancel</a></div>
+</form>
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+}
+
+
+
+
+

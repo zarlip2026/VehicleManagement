@@ -1,0 +1,68 @@
+@model IEnumerable<VehicleManagement.Models.Category>
+@{ ViewData["Title"] = "Categories"; var categories = Model.ToList(); }
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">Weight configuration</p>
+        
+        <h1>Categories</h1>
+        
+        <p>Clear boundaries. The right category for every vehicle.</p>
+    </div>
+    
+    <a class="btn btn-primary" asp-action="Create">+ Add category</a>
+</div>
+
+@if (TempData["Error"] != null) { <div class="alert alert-danger" role="alert">@TempData["Error"]</div> }
+
+<section class="panel" aria-label="Category directory">
+    <div class="panel-top">
+        <strong>All categories <span class="count">@categories.Count</span></strong>
+        <span>Minimum weights are inclusive</span></div>
+    
+        @if (categories.Count == 0) {
+            <div class="empty-state">
+                <h3>Start with your first category</h3>
+
+                <p>Set its minimum weight to @Constants.MinimumWeightKg kg to cover the lightest vehicles.</p>
+
+                <a class="btn btn-primary" asp-action="Create">Add category</a>
+            </div>
+        } else {
+            <div class="table-wrap" role="region" aria-label="Categories" tabindex="0">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Category</th>
+                            <th scope="col">Min weight (kg)</th>
+                            <th scope="col">Icon</th>
+                            <th scope="col" class="actions-heading">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(var c in categories) {
+                            <tr>
+                                <td>@c.Name</td>
+                                <td>@c.MinWeightKg.ToString("N2") kg</td>
+                                <td>
+                                    @if (c.Icon is { Length: > 0 }) { 
+                                        <img src="@IconImage.DataUrl(c.Icon)" alt="@c.Name" />
+                                    } else { 
+                                        <span>—</span> 
+                                    }
+                                </td>
+                                <td>
+                                    <div class="row-actions">
+                                        <a asp-action="Edit" asp-route-id="@c.Id">Edit</a>
+                                        <a class="delete-link" asp-action="Delete" asp-route-id="@c.Id" data-delete="category" data-name="@c.Name">Delete</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+</section>
+
+

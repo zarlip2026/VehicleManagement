@@ -1,0 +1,9 @@
+@model string
+@{ ViewData["Title"] = "Unable to complete request"; }
+<h1>We could not complete your request</h1>
+<div class="alert alert-danger" role="alert">
+    The service is temporarily unavailable. Your change may not have been saved.
+    Return to the list and check the record before trying again.
+</div>
+<p>If the problem continues, contact support with reference <strong>@Model</strong>.</p>
+<a class="btn btn-primary" asp-controller="Home" asp-action="Index">Return to overview</a>
