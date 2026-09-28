@@ -131,6 +131,35 @@ public class CategoryManagementTests
         Assert.Single(await db.Categories.ToListAsync());
     }
 
+    [Fact]
+    public async Task CreateCategory_RequiresIcon_ThenAcceptsUploadedIcon()
+    {
+        using var app = new TestApp();
+        using var client = app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var token = await Token(client, "/CategoriesManage/Create");
+        using var missing = await client.PostAsync("/CategoriesManage/Create", new FormUrlEncodedContent(new Dictionary<string, string>
+        { ["Name"] = "Light", ["MinWeightKg"] = "0.01", ["__RequestVerificationToken"] = token }));
+
+        Assert.Equal(HttpStatusCode.OK, missing.StatusCode);
+        Assert.Contains("A category icon is required.", await missing.Content.ReadAsStringAsync());
+
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<VehicleDbContext>();
+        Assert.Empty(await db.Categories.ToListAsync());
+
+        using var form = new MultipartFormDataContent();
+        form.Add(new StringContent("Light"), "Name");
+        form.Add(new StringContent("0.01"), "MinWeightKg");
+        form.Add(new StringContent(token), "__RequestVerificationToken");
+        form.Add(new ByteArrayContent(Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=")), "icon", "icon.png");
+
+        using var created = await client.PostAsync("/CategoriesManage/Create", form);
+        Assert.Equal(HttpStatusCode.Redirect, created.StatusCode);
+        Assert.NotEmpty((await db.Categories.SingleAsync()).Icon!);
+    }
+
+
     [Theory]
     [InlineData("600", true)]
     [InlineData("0.01", false)]
@@ -162,7 +191,8 @@ public class CategoryManagementTests
         var html = await response.Content.ReadAsStringAsync();
         Assert.Contains("data:image/png;base64,AQID", html);
 
-        if (!valid) Assert.Contains("MinWeight must be unique.", html);
+        if (!valid) 
+            Assert.Contains("MinWeight must be unique.", html);
 
         db.ChangeTracker.Clear();
 
@@ -170,6 +200,7 @@ public class CategoryManagementTests
         Assert.Equal(valid ? 600m : 500m, saved!.MinWeightKg);
         Assert.Equal(icon, saved.Icon);
     }
+
 }
 
 

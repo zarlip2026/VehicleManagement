@@ -7,10 +7,12 @@ namespace VehicleManagement.Controllers
     public class CategoriesManageController : Controller
     {
         private readonly ICategoryService _categoryService;
+        private readonly ILogger<CategoriesManageController> _logger;
 
-        public CategoriesManageController(ICategoryService categoryService)
+        public CategoriesManageController(ICategoryService categoryService, ILogger<CategoriesManageController> logger)
         {
             _categoryService = categoryService;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
@@ -44,6 +46,7 @@ namespace VehicleManagement.Controllers
             }
             catch (CategoryValidationException ex)
             {
+                _logger.LogWarning("Category creation rejected: {Reason}. Reference {RequestId}", ex.Message, HttpContext.TraceIdentifier);
                 ModelState.AddModelError(string.Empty, ex.Message);
                 return View(model);
             }
@@ -86,6 +89,7 @@ namespace VehicleManagement.Controllers
             }
             catch (CategoryValidationException ex)
             {
+                _logger.LogWarning("Category update rejected for {CategoryId}: {Reason}. Reference {RequestId}", id, ex.Message, HttpContext.TraceIdentifier);
                 ModelState.AddModelError(string.Empty, ex.Message);
 
                 return View(model);
@@ -113,6 +117,7 @@ namespace VehicleManagement.Controllers
             }
             catch (CategoryValidationException ex)
             {
+                _logger.LogWarning("Category deletion rejected for {CategoryId}: {Reason}. Reference {RequestId}", id, ex.Message, HttpContext.TraceIdentifier);
                 var category = await _categoryService.GetByIdAsync(id);
 
                 if (category == null)
@@ -130,7 +135,11 @@ namespace VehicleManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UploadIcon(int id, IFormFile icon)
         {
-            if (icon == null || icon.Length == 0) return BadRequest("No file");
+            if (icon == null || icon.Length == 0)
+            {
+                _logger.LogWarning("Category icon upload rejected for {CategoryId}: no file supplied. Reference {RequestId}", id, HttpContext.TraceIdentifier);
+                return BadRequest("No file");
+            }
             using var ms = new MemoryStream();
             await icon.CopyToAsync(ms);
             var updated = await _categoryService.UpdateIconAsync(id, ms.ToArray());

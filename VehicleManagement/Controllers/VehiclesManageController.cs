@@ -7,10 +7,12 @@ namespace VehicleManagement.Controllers
     public class VehiclesManageController : Controller
     {
         private readonly IVehicleService _vehicleService;
+        private readonly ILogger<VehiclesManageController> _logger;
 
-        public VehiclesManageController(IVehicleService vehicleService)
+        public VehiclesManageController(IVehicleService vehicleService, ILogger<VehiclesManageController> logger)
         {
             _vehicleService = vehicleService;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index(string? sortBy, bool desc = false)
@@ -38,6 +40,7 @@ namespace VehicleManagement.Controllers
             }
             catch (VehicleValidationException ex)
             {
+                _logger.LogWarning("Vehicle creation rejected: {Reason}. Reference {RequestId}", ex.Message, HttpContext.TraceIdentifier);
                 ModelState.AddModelError(string.Empty, ex.Message);
                 ViewBag.Manufacturers = await _vehicleService.GetManufacturersAsync();
                 return View(model);
@@ -69,6 +72,7 @@ namespace VehicleManagement.Controllers
             }
             catch (VehicleValidationException ex)
             {
+                _logger.LogWarning("Vehicle update rejected for {VehicleId}: {Reason}. Reference {RequestId}", id, ex.Message, HttpContext.TraceIdentifier);
                 ModelState.AddModelError(string.Empty, ex.Message);
                 ViewBag.Manufacturers = await _vehicleService.GetManufacturersAsync();
                 return View(model);

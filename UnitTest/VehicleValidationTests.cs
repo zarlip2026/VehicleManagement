@@ -7,6 +7,25 @@ namespace VehicleManagement.UnitTests;
 public class VehicleValidationTests
 {
     [Theory]
+    [InlineData(nameof(Vehicle.OwnerName), null)]
+    [InlineData(nameof(Vehicle.OwnerName), "")]
+    [InlineData(nameof(Vehicle.OwnerName), "   ")]
+    [InlineData(nameof(Vehicle.Manufacturer), null)]
+    [InlineData(nameof(Vehicle.Manufacturer), "")]
+    [InlineData(nameof(Vehicle.Manufacturer), "   ")]
+    public void RequiredVehicleText_CannotBeMissingOrWhitespace(string field, string? value)
+    {
+        var vehicle = new Vehicle
+        {
+            OwnerName = "Amy", Manufacturer = "Toyota", YearOfManufacture = 2020, WeightKg = 500m
+        };
+        typeof(Vehicle).GetProperty(field)!.SetValue(vehicle, value);
+        var errors = new List<ValidationResult>();
+        Assert.False(Validator.TryValidateObject(vehicle, new ValidationContext(vehicle), errors, true));
+        Assert.Contains(errors, error => error.MemberNames.Contains(field));
+    }
+
+    [Theory]
     [InlineData(1, false)]
     [InlineData(0, true)]
     [InlineData(1881, true)]

@@ -11,6 +11,7 @@ TestResults/
 *.ldf
 *.ndf
 *.log
+**/Logs/
 *.trx
 **/node_modules/
 tmp/

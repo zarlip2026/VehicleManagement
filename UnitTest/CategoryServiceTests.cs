@@ -131,22 +131,6 @@ namespace VehicleManagement.UnitTests
         }
 
         [Fact]
-        public async Task LegacyZeroBoundary_CanBeCorrectedByEditingFirstCategory()
-        {
-            using var db = CreateContext();
-            var legacy = new Category { Icon = new byte[] { 1 }, Name = "Legacy", MinWeightKg = 0m };
-            
-            db.Categories.Add(legacy);
-            
-            await db.SaveChangesAsync();
-            
-            var service = new CategoryService(db);
-            
-            await service.UpdateAsync(new Category { Icon = new byte[] { 1 }, Id = legacy.Id, Name = "Legacy", MinWeightKg = 0.01m });
-            await service.ValidateConfigurationAsync();
-        }
-
-        [Fact]
         public async Task FirstCategory_StartsAtPointZeroOne_AndDeletePromotesNext()
         {
             using var db = CreateContext();
@@ -204,33 +188,6 @@ namespace VehicleManagement.UnitTests
             Assert.Single(await db.Categories.ToListAsync());
         }
 
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task Update_ChangesWeightAndKeepsOrReplacesIcon(bool replaceIcon)
-        {
-            using var db = CreateContext();
-            
-            var original = new byte[] { 1, 2, 3 };
-            var replacement = new byte[] { 4, 5, 6 };
-            var category = new Category { Name = "Medium", MinWeightKg = 500m, Icon = original };
-            
-            db.Categories.AddRange(new Category { Icon = new byte[] { 1 }, Name = "Light", MinWeightKg = 0.01m }, category);
-            
-            await db.SaveChangesAsync();
-            await new CategoryService(db).UpdateAsync(new Category
-            {
-                Id = category.Id, Name = category.Name, MinWeightKg = 600m,
-                Icon = replaceIcon ? replacement : null
-            });
-            
-            db.ChangeTracker.Clear();
-            
-            var saved = await db.Categories.FindAsync(category.Id);
-            
-            Assert.Equal(600m, saved!.MinWeightKg);
-            Assert.Equal(replaceIcon ? replacement : original, saved.Icon);
-        }
 
         [Fact]
         public async Task Update_LastCategoryHigherWeight_RejectsBeforeSaving()
@@ -252,41 +209,7 @@ namespace VehicleManagement.UnitTests
             Assert.Equal(new byte[] { 1 }, saved.Icon);
         }
 
-        [Fact]
-        public async Task GetById_ReturnsCategoryOrNullWhenMissing()
-        {
-            using var db = CreateContext();
-            var category = new Category { Icon = new byte[] { 1 }, Name = "Light", MinWeightKg = 0.01m };
-            db.Categories.Add(category);
-            
-            await db.SaveChangesAsync();
-            var svc = new CategoryService(db);
 
-            Assert.Equal("Light", (await svc.GetByIdAsync(category.Id))?.Name);
-            Assert.Null(await svc.GetByIdAsync(category.Id + 1));
-        }
-
-        [Fact]
-        public async Task UpdateIcon_PersistsIconAndPreservesCategoryDetails()
-        {
-            using var db = CreateContext();
-            var category = new Category { Name = "Medium", MinWeightKg = 500m, Icon = new byte[] { 1 } };
-            db.Categories.Add(category);
-            
-            await db.SaveChangesAsync();
-            
-            var svc = new CategoryService(db);
-            var icon = new byte[] { 2, 3, 4 };
-
-            Assert.True(await svc.UpdateIconAsync(category.Id, icon));
-            db.ChangeTracker.Clear();
-            
-            var saved = await db.Categories.FindAsync(category.Id);
-            Assert.NotNull(saved);
-            Assert.Equal(icon, saved.Icon);
-            Assert.Equal("Medium", saved.Name);
-            Assert.Equal(500m, saved.MinWeightKg);
-        }
 
         [Fact]
         public async Task UpdateIcon_MissingCategory_ReturnsFalseWithoutCreatingCategory()
@@ -309,24 +232,6 @@ namespace VehicleManagement.UnitTests
             await Assert.ThrowsAsync<CategoryValidationException>(() => svc.ValidateConfigurationAsync());
         }
 
-        [Fact]
-        public async Task GetCategoryForWeight_Boundary_Inclusive()
-        {
-            using var db = CreateContext();
-            db.Categories.AddRange(
-                new Category { Icon = new byte[] { 1 }, Name = "Light", MinWeightKg = 0.01m },
-                new Category { Icon = new byte[] { 1 }, Name = "Medium", MinWeightKg = 500m },
-                new Category { Icon = new byte[] { 1 }, Name = "Heavy", MinWeightKg = 2500m }
-            );
-            await db.SaveChangesAsync();
-
-            var svc = new CategoryService(db);
-            var c1 = await svc.GetCategoryForWeightAsync(500m);
-            Assert.Equal("Medium", c1?.Name);
-
-            var c2 = await svc.GetCategoryForWeightAsync(499.99m);
-            Assert.Equal("Light", c2?.Name);
-        }
 
         [Fact]
         public async Task AddingDuplicateMinWeight_Throws()

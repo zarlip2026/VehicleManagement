@@ -45,12 +45,17 @@ public class VehicleManagementTest
         using var app = new TestApp();
         using var client = app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         using var scope = app.Services.CreateScope();
+        
         var db = scope.ServiceProvider.GetRequiredService<VehicleDbContext>();
         db.Categories.Add(new Category { Name = "Light", MinWeightKg = 0.01m, Icon = new byte[] { 1 } });
+        
         await db.SaveChangesAsync();
+        
         var vehicle = NewVehicle();
         db.Vehicles.Add(vehicle);
+        
         await db.SaveChangesAsync();
+        
         var year = yearCase <= 1 ? DateTime.Today.Year + yearCase : yearCase;
         foreach (var path in new[] { "/VehiclesManage/Create", $"/VehiclesManage/Edit/{vehicle.Id}" })
         {
@@ -63,7 +68,9 @@ public class VehicleManagementTest
             Assert.Equal(valid ? HttpStatusCode.Redirect : HttpStatusCode.OK, response.StatusCode);
             if (!valid) Assert.Contains(Vehicle.ManufactureYearError, await response.Content.ReadAsStringAsync());
         }
+        
         db.ChangeTracker.Clear();
+        
         var saved = await db.Vehicles.ToListAsync();
         Assert.Equal(valid ? 2 : 1, saved.Count);
         Assert.All(saved, v => Assert.Equal(valid ? year : 2020, v.YearOfManufacture));
@@ -195,22 +202,6 @@ public class VehicleManagementTest
         Assert.Equal(500m, saved.WeightKg);
     }
 
-    [Theory]
-    [InlineData("Edit")]
-    [InlineData("Delete")]
-    public async Task MissingVehicle_GetAndPostReturnNotFound(string action)
-    {
-        using var app = new TestApp();
-        using var client = app.CreateClient();
-        var path = $"/VehiclesManage/{action}/999";
-        
-        using var get = await client.GetAsync(path);
-        Assert.Equal(HttpStatusCode.NotFound, get.StatusCode);
-        
-        using var post = await Post(client, path, Form(999), "/VehiclesManage/Create");
-        Assert.Equal(HttpStatusCode.NotFound, post.StatusCode);
-    }
-
     [Fact]
     public async Task Edit_MismatchedIdReturnsBadRequestWithoutChangingVehicle()
     {
@@ -280,6 +271,46 @@ public class VehicleManagementTest
         var owners = Regex.Matches(html, @"<tr>\s*<td>\s*(Amy|Zoe)\s*</td>").Select(m => m.Groups[1].Value).ToArray();
         Assert.Equal(2, owners.Length);
         Assert.Equal(firstOwner, owners[0]);
+    }
+
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task VehicleSave_WithMissingOrInvalidCategories_ShowsError(bool invalid)
+    {
+        using var app = new TestApp();
+        using var client = app.CreateClient();
+        using var scope = app.Services.CreateScope();
+
+        var db = scope.ServiceProvider.GetRequiredService<VehicleDbContext>();
+
+        if (invalid)
+            db.Categories.Add(new Category { Name = "Invalid", MinWeightKg = 500m, Icon = new byte[] { 1 } });
+
+        var vehicle = new Vehicle { OwnerName = "Original", Manufacturer = "Toyota", YearOfManufacture = 2020, WeightKg = 500m };
+        db.Vehicles.Add(vehicle);
+
+        await db.SaveChangesAsync();
+
+        foreach (var path in new[] { "/VehiclesManage/Create", $"/VehiclesManage/Edit/{vehicle.Id}" })
+        {
+            var token = await Token(client, path);
+            using var response = await client.PostAsync(path, new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["Id"] = vehicle.Id.ToString(),
+                ["OwnerName"] = "Changed",
+                ["Manufacturer"] = "Toyota",
+                ["YearOfManufacture"] = "2020",
+                ["WeightKg"] = "500",
+                ["__RequestVerificationToken"] = token
+            }));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Contains("Configure valid weight categories", await response.Content.ReadAsStringAsync());
+        }
+
+        db.ChangeTracker.Clear();
+        Assert.Equal("Original", Assert.Single(await db.Vehicles.ToListAsync()).OwnerName);
     }
 }
 

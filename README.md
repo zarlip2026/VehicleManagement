@@ -8,7 +8,7 @@ An ASP.NET Core MVC application for managing vehicles and weight categories. Veh
 | Backend | ASP.NET Core MVC (.NET 8) |
 | Data access | Entity Framework Core 8 |
 | Database | SQL Server |
-| Tests | xUnit and ASP.NET Core test hosting |
+| Tests | xUnit business-rule tests |
 
 ---
 
@@ -91,7 +91,7 @@ dotnet dev-certs https --trust
 dotnet run --project VehicleManagement/VehicleManagement.csproj -c Release
 ```
 
-Open the URL printed in the terminal. Press **Ctrl+C** to stop.
+Open `https://localhost:64690` (the default address in `VehicleManagement/Properties/launchSettings.json`). Press **Ctrl+C** to stop.
 
 **From Visual Studio**
 
@@ -116,10 +116,30 @@ Open the URL printed in the terminal. Press **Ctrl+C** to stop.
 **From PowerShell**
 
 ```powershell
-dotnet test VehicleManagement.slnx -c Release --logger trx --results-directory TestResults
+dotnet test VehicleManagement.slnx -c Release
 ```
 
-This runs both test projects and saves results in `TestResults`. Tests cover validation, sorting, category boundaries, category changes and error handling. They use isolated EF in-memory databases and temporary data-protection keys, and do not require SQL Server or Windows Event Log permissions.
+Unit and integration tests focus on category range rules, overlap and gap prevention, vehicle validation, sorting, category changes affecting vehicles, boundary values and invalid operations. Integration tests check category and vehicle requests through the MVC application. Both projects use isolated in-memory data and do not require SQL Server.
+
+---
+
+### Error logs
+
+
+Errors, exceptions and business-rule validation failures are written to:
+
+VehicleManagement/Logs/vehiclemanagement-YYYYMMDD.log
+
+Unexpected errors include exception details and stack traces.
+
+Validation failures are logged as warnings.
+
+Entries include a timestamp, severity and request ID when available.
+
+Submitted form values and successful operations are not logged.
+
+Files rotate daily or at 10 MB. The latest 14 files are retained.
+
 
 ---
 
@@ -133,11 +153,11 @@ Razor views → MVC controllers → Services → EF Core → SQL Server
 
 | Area | Responsibility |
 | --- | --- |
+| Views / wwwroot | Render pages and provide styles and browser scripts |
 | Controllers | Handle HTTP requests, validate submitted forms and call services |
 | Services | Apply business rules and access data through EF Core |
 | Models | Define entities and input validation |
 | Data | Configure the DbContext and database mappings |
-| Views / wwwroot | Render pages and provide styles and browser scripts |
 | Program.cs | Register dependencies and configure routing and middleware |
 
 ### Database design
@@ -187,7 +207,7 @@ The application uses current category settings whenever vehicles are read. Chang
 - Manufacture year is between **1880 and the server's current year**.
 - Manufacturer changes are rare and managed by a developer through migrations or controlled database updates. Vehicles retain the selected manufacturer name.
 
-### Significant design decisions
+### Design decisions
 
 - **Agreed UI approach:** use Razor MVC for this application.
 - **Agreed manufacturer storage:** keep manufacturers in a database table, maintained by a developer.
@@ -211,7 +231,8 @@ The application uses current category settings whenever vehicles are read. Chang
 
 ### Further production improvements
 
+- Separate the backend API from the client application to allow independent development and support web, mobile and other clients across platforms.
+- Containerize the server for consistent deployment across development, testing and production environments.
 - Add authentication and authorization.
 - Protect concurrent category updates and add deeper image validation.
-- Extend the existing integration tests to verify migrations, constraints and transactions against a temporary SQL Server database.
 - Introduce managed secrets, trusted certificates, monitoring, backups and reviewed database deployments.
