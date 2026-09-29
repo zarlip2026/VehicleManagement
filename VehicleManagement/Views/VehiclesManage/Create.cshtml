@@ -1,4 +1,4 @@
-@model VehicleManagement.Models.Vehicle
+@model VehicleManagement.ViewModels.VehicleFormModel
 @{
     ViewData["Title"] = "Create Vehicle";
 }
@@ -21,7 +21,7 @@
     </div>
     <div class="form-group">
         <label asp-for="YearOfManufacture">Year of manufacture</label>
-        <input asp-for="YearOfManufacture" type="number" step="1"
+        <input asp-for="YearOfManufacture" type="number" step="1" required
                min="@Vehicle.MinimumManufactureYear" max="@Vehicle.MaximumManufactureYear"
                data-val="true" data-val-range="@Vehicle.ManufactureYearError"
                data-val-range-min="@Vehicle.MinimumManufactureYear" data-val-range-max="@Vehicle.MaximumManufactureYear"
@@ -31,7 +31,7 @@
     </div>
     <div class="form-group">
         <label asp-for="WeightKg">Weight (kg)</label>
-        <input asp-for="WeightKg" type="number" min="@Constants.MinimumWeightKg.ToString(System.Globalization.CultureInfo.InvariantCulture)" max="@Constants.MaximumWeightKg.ToString(System.Globalization.CultureInfo.InvariantCulture)" step="@Constants.WeightInputStepKg.ToString(System.Globalization.CultureInfo.InvariantCulture)" class="form-control" />
+        <input asp-for="WeightKg" type="number" required min="@Constants.MinimumWeightKg.ToString(System.Globalization.CultureInfo.InvariantCulture)" max="@Constants.MaximumWeightKg.ToString(System.Globalization.CultureInfo.InvariantCulture)" step="@Constants.WeightInputStepKg.ToString(System.Globalization.CultureInfo.InvariantCulture)" class="form-control" />
         <span asp-validation-for="WeightKg" class="text-danger"></span>
     </div>
     <div class="form-actions"><button type="submit" class="btn btn-primary">Create</button><a class="btn btn-secondary" asp-action="Index">Cancel</a></div>

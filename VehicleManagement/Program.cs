@@ -11,15 +11,10 @@ builder.Logging.AddErrorFile(builder.Configuration, builder.Environment.ContentR
 // Configuration - enable MVC with views
 builder.Services.AddControllersWithViews(options => options.Filters.Add<ValidationLoggingFilter>());
 
-// DbContext placeholder - user must set ConnectionStrings:DefaultConnection in appsettings.json
-builder.Services.AddDbContext<VehicleDbContext>(options =>
-{
-    var conn = builder.Configuration.GetConnectionString("DefaultConnection");
-    if (!string.IsNullOrEmpty(conn))
-    {
-        options.UseSqlServer(conn);
-    }
-});
+var connection = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connection))
+    throw new InvalidOperationException("Configure ConnectionStrings:DefaultConnection in appsettings.json or set ConnectionStrings__DefaultConnection before starting the application.");
+builder.Services.AddDbContext<VehicleDbContext>(options => options.UseSqlServer(connection));
 
 // Register services
 builder.Services.AddScoped<VehicleManagement.Services.ICategoryService, VehicleManagement.Services.CategoryService>();
@@ -38,11 +33,12 @@ app.Use(async (context, next) =>
 
 app.UseExceptionHandler("/Home/Error");
 
+app.UseHttpsRedirection();
+app.UseAuthorization();
+
 app.UseStaticFiles();
 app.UseRouting();
 
-app.UseHttpsRedirection();
-app.UseAuthorization();
 
 // Default route for MVC controllers
 app.MapControllerRoute(

@@ -36,6 +36,8 @@ If you already have SQL Server under an instance name other than `SQLEXPRESS`, r
 
 Open `VehicleManagement/appsettings.json` and fill in the empty `ConnectionStrings:DefaultConnection` value using your SQL Server instance. Use `VehicleManagementDb` as the database name, as shown below.
 
+The application stops at startup with a clear configuration error if this value is missing or blank.
+
 ```json
 "ConnectionStrings": {
   "DefaultConnection": "Server=localhost;Database=VehicleManagementDb;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True;"
@@ -157,6 +159,7 @@ Razor views → MVC controllers → Services → EF Core → SQL Server
 | Controllers | Handle HTTP requests, validate submitted forms and call services |
 | Services | Apply business rules and access data through EF Core |
 | Models | Define entities and input validation |
+| ViewModels | Bind vehicle forms with nullable numeric inputs so missing values show required-field errors; database fields remain non-nullable |
 | Data | Configure the DbContext and database mappings |
 | Program.cs | Register dependencies and configure routing and middleware |
 

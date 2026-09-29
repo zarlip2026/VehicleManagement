@@ -202,6 +202,37 @@ public class VehicleManagementTest
         Assert.Equal(500m, saved.WeightKg);
     }
 
+    [Theory]
+    [InlineData("YearOfManufacture", "", "Year of manufacture is required.")]
+    [InlineData("YearOfManufacture", null, "Year of manufacture is required.")]
+    [InlineData("WeightKg", "", "Weight is required.")]
+    [InlineData("WeightKg", null, "Weight is required.")]
+    public async Task MissingNumericInputs_ShowRequiredErrorsWithoutSaving(string field, string? value, string message)
+    {
+        using var app = new TestApp();
+        using var client = app.CreateClient();
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<VehicleDbContext>();
+        var vehicle = NewVehicle();
+        db.Vehicles.Add(vehicle);
+        await db.SaveChangesAsync();
+
+        foreach (var path in new[] { "/VehiclesManage/Create", $"/VehiclesManage/Edit/{vehicle.Id}" })
+        {
+            var form = Form(vehicle.Id);
+            if (value == null) form.Remove(field);
+            else form[field] = value;
+            using var response = await Post(client, path, form);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var html = await response.Content.ReadAsStringAsync();
+            Assert.Matches($"data-valmsg-for=\"{field}\"[^>]*>{Regex.Escape(message)}</span>", html);
+        }
+        db.ChangeTracker.Clear();
+        var saved = Assert.Single(await db.Vehicles.ToListAsync());
+        Assert.Equal(2020, saved.YearOfManufacture);
+        Assert.Equal(500m, saved.WeightKg);
+    }
+
     [Fact]
     public async Task Edit_MismatchedIdReturnsBadRequestWithoutChangingVehicle()
     {

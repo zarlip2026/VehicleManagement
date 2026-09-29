@@ -15,7 +15,6 @@ namespace VehicleManagement.Models
         [MaxLength(Constants.ManufacturerNameMaxLength)]
         public string Manufacturer { get; set; } = string.Empty;
 
-        [Required]
         public int YearOfManufacture { get; set; }
 
         public static int MaximumManufactureYear => DateTime.Today.Year;
@@ -23,16 +22,17 @@ namespace VehicleManagement.Models
         public static string ManufactureYearError =>
             $"Year of manufacture must be between {MinimumManufactureYear} and {MaximumManufactureYear} (future years are not allowed).";
 
-        [Required]
         [Range((double)Constants.MinimumWeightKg, (double)Constants.MaximumWeightKg)]
-        [DataType(DataType.Currency)]
         public decimal WeightKg { get; set; }
 
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext) =>
+            ValidateNumbers(YearOfManufacture, WeightKg);
+
+        public static IEnumerable<ValidationResult> ValidateNumbers(int? year, decimal? weight)
         {
-            if (YearOfManufacture < MinimumManufactureYear || YearOfManufacture > MaximumManufactureYear)
+            if (year.HasValue && (year.Value < MinimumManufactureYear || year.Value > MaximumManufactureYear))
                 yield return new ValidationResult(ManufactureYearError, new[] { nameof(YearOfManufacture) });
-            if (decimal.Round(WeightKg, Constants.WeightDecimalPlaces) != WeightKg)
+            if (weight.HasValue && decimal.Round(weight.Value, Constants.WeightDecimalPlaces) != weight.Value)
                 yield return new ValidationResult($"Weight must have at most {Constants.WeightDecimalPlaces} decimal places.", new[] { nameof(WeightKg) });
         }
 

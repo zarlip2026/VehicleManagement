@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VehicleManagement.Models;
 using VehicleManagement.Services;
+using VehicleManagement.ViewModels;
 
 namespace VehicleManagement.Controllers
 {
@@ -22,12 +23,12 @@ namespace VehicleManagement.Controllers
         public async Task<IActionResult> Create()
         {
             ViewBag.Manufacturers = await _vehicleService.GetManufacturersAsync();
-            return View();
+            return View(new VehicleFormModel());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Vehicle model)
+        public async Task<IActionResult> Create(VehicleFormModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -36,7 +37,7 @@ namespace VehicleManagement.Controllers
             }
             try
             {
-                await _vehicleService.AddAsync(model);
+                await _vehicleService.AddAsync(model.ToVehicle());
             }
             catch (VehicleValidationException ex)
             {
@@ -53,12 +54,12 @@ namespace VehicleManagement.Controllers
             var v = await _vehicleService.GetByIdAsync(id);
             if (v == null) return NotFound();
             ViewBag.Manufacturers = await _vehicleService.GetManufacturersAsync();
-            return View(v);
+            return View(VehicleFormModel.FromVehicle(v));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit([FromRoute] int id, Vehicle model)
+        public async Task<IActionResult> Edit([FromRoute] int id, VehicleFormModel model)
         {
             if (id != model.Id) return BadRequest();
             if (!ModelState.IsValid)
@@ -68,7 +69,7 @@ namespace VehicleManagement.Controllers
             }
             try
             {
-                if (!await _vehicleService.UpdateAsync(model)) return NotFound();
+                if (!await _vehicleService.UpdateAsync(model.ToVehicle())) return NotFound();
             }
             catch (VehicleValidationException ex)
             {

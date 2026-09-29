@@ -26,6 +26,8 @@ internal sealed class TestApp : WebApplicationFactory<Program>
         private readonly string _database = Guid.NewGuid().ToString();
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
+            // Satisfy startup configuration; all database operations still use the isolated in-memory provider below.
+            builder.UseSetting("ConnectionStrings:DefaultConnection", "Server=localhost;Database=VehicleManagement_TestOnly;Integrated Security=True;");
             // Test hosts must not depend on the user's Event Log or persisted encryption keys.
             builder.ConfigureLogging(logging => logging.ClearProviders().AddConsole());
             builder.ConfigureServices(services =>
